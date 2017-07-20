@@ -60,6 +60,7 @@ import com.redhat.rhn.domain.user.User;
 import com.redhat.rhn.frontend.dto.PackageMetadata;
 import com.redhat.rhn.frontend.listview.PageControl;
 import com.redhat.rhn.frontend.xmlrpc.InvalidActionTypeException;
+import com.redhat.rhn.frontend.xmlrpc.ServerActionIsAlreadyFailedOrCompletedException;
 import com.redhat.rhn.manager.BaseManager;
 import com.redhat.rhn.manager.MissingCapabilityException;
 import com.redhat.rhn.manager.MissingEntitlementException;
@@ -145,6 +146,12 @@ public class ActionManager extends BaseManager {
                 action);
         Date now = Calendar.getInstance().getTime();
 
+        //check whether the action's status is queued
+        if (serverAction.getStatus().getId() != 0) {
+            throw new ServerActionIsAlreadyFailedOrCompletedException(
+                    serverAction.getParentAction().getId().toString(),
+                    serverAction.getServerId().toString());
+        }
         serverAction.setStatus(ActionFactory.STATUS_FAILED);
         serverAction.setResultMsg(message);
         serverAction.setCompletionTime(now);
